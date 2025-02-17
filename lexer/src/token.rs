@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
-enum LiteralType {
+pub (crate) enum LiteralType {
     String(String),
     Integer(isize),
     Float(f64),

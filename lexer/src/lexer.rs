@@ -1,3 +1,20 @@
+use crate::cursor::Cursor;
+use crate::token::{LexerToken, LiteralType};
+use std::ops::Add;
+fn collect_while(cursor: &mut Cursor, f: impl Fn(char, usize) -> bool) -> String {
+    let mut pos = 0;
+    let mut collected = String::new();
+    'collect_string: while let Some(c) = cursor.peek() {
+        if f(c, pos) {
+            break 'collect_string;
+        }
+        collected.push(c);
+        cursor.next_char();
+        pos += 1;
+    }
+    collected
+}
+
 pub struct Lexer<'a> {
     cursor: Cursor<'a>,
 }
@@ -14,23 +31,23 @@ impl<'a> Lexer<'a> {
             Some('{') => LexerToken::LeftBrace,
             Some('}') => LexerToken::RightBrace,
             Some(':') => LexerToken::Colon,
-            Some(',')=>LexerToken::Comma,
+            Some(',') => LexerToken::Comma,
             Some('"') => {
                 let mut collected = String::new();
-                loop{
+                loop {
                     if let Some(c) = self.cursor.next_char() {
                         match c {
                             '"' => break,
                             '\\' => {
                                 if let Some(escaped_char) = self.cursor.next_char() {
                                     collected.push(escaped_char);
-                                }else{
+                                } else {
                                     panic!("Unterminated string literal");
                                 }
                             }
                             _ => collected.push(c),
                         }
-                    }else{
+                    } else {
                         panic!("Unterminated string literal");
                     }
                 }
@@ -51,7 +68,7 @@ impl<'a> Lexer<'a> {
     }
     fn is_whitespace(c: Option<char>) -> bool {
         match c {
-            Some(c) => c.is_whitespace() || c=='\n'||c=='\r',
+            Some(c) => c.is_whitespace() || c == '\n' || c == '\r',
             None => false,
         }
     }
@@ -61,17 +78,4 @@ impl<'a> Lexer<'a> {
             None => false,
         }
     }
-}
-fn collect_while(cursor: &mut Cursor, f: impl Fn(char, usize) -> bool) -> String {
-    let mut pos = 0;
-    let mut collected = String::new();
-    'collect_string: while let Some(c) = cursor.peek() {
-        if f(c, pos) {
-            break 'collect_string;
-        }
-        collected.push(c);
-        cursor.next_char();
-        pos += 1;
-    }
-    collected
 }
