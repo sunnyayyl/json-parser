@@ -14,18 +14,32 @@ fn collect_while(cursor: &mut Cursor, f: impl Fn(char, usize) -> bool) -> String
     }
     collected
 }
+pub struct IntoIter<'a>(Lexer<'a>);
+impl Iterator for IntoIter<'_> {
+    type Item = LexerToken;
 
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.0.next_token() {
+            LexerToken::Eof => None,
+            token => Some(token),
+        }
+    }
+}
+#[derive(Debug,Clone)]
 pub struct Lexer<'a> {
     cursor: Cursor<'a>,
 }
 impl<'a> Lexer<'a> {
-    pub fn new(slice: &'a str) -> Lexer {
+    pub fn new(slice: &'a str) -> Lexer<'a> {
         Self {
             cursor: Cursor::new(slice),
         }
     }
     pub fn next_token(&mut self) -> LexerToken {
         self.eat_whitespace();
+        if self.cursor.is_eof() {
+            return LexerToken::Eof;
+        }
         let next_char = self.cursor.next_char();
         match next_char {
             Some('{') => LexerToken::LeftBrace,
@@ -72,10 +86,12 @@ impl<'a> Lexer<'a> {
             None => false,
         }
     }
-    fn is_numeric(c: Option<char>) -> bool {
-        match c {
-            Some(c) => c.is_digit(10),
-            None => false,
-        }
+}
+impl<'a> IntoIterator for Lexer<'a> {
+    type Item = LexerToken;
+    type IntoIter = IntoIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter(self)
     }
 }
