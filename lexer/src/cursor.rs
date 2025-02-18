@@ -1,16 +1,15 @@
 use std::str::Chars;
 
 // Borrowed part form rustc_lexer
+#[derive(Clone, Debug)]
 pub(crate) struct Cursor<'a> {
     chars: Chars<'a>,
-    previous_char: Option<char>,
     len_remaining: usize,
 }
 impl<'a> Cursor<'a> {
-    pub (crate) fn new(slice: &str) -> Cursor {
+    pub(crate) fn new(slice: &str) -> Cursor {
         Cursor {
             chars: slice.chars(),
-            previous_char: None,
             len_remaining: slice.len(),
         }
     }
@@ -21,7 +20,7 @@ impl<'a> Cursor<'a> {
             self.chars = "".chars();
         }
     }*/
-    fn is_eof(&self) -> bool {
+    pub(crate) fn is_eof(&self) -> bool {
         self.chars.as_str().is_empty()
     }
     pub(crate) fn peek(&self) -> Option<char> {

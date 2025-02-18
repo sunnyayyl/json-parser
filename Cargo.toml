@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "lexer",
+    "lexer", "repl",
 ]
-
+[workspace.dependencies]
+lexer={ path = "lexer" }

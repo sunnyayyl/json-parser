@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
-pub (crate) enum LiteralType {
+pub enum LiteralType {
     String(String),
     Integer(isize),
     Float(f64),
@@ -16,7 +16,7 @@ impl Display for LiteralType {
     }
 }
 #[derive(Debug)]
-pub(crate) enum LexerToken {
+pub enum LexerToken {
     Eof,
     LeftBrace,
     RightBrace,
