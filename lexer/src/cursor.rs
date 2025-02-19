@@ -36,11 +36,28 @@ impl<'a> Cursor<'a> {
         self.chars.next()
     }
     pub(crate) fn eat_while(&mut self, f: impl Fn(Option<char>) -> bool) {
-        while f(self.peek()) && !self.is_eof() {
+        while !self.is_eof() && f(self.peek()) {
             self.next_char();
         }
     }
     fn position_consumed(&self) -> usize {
         self.len_remaining - self.chars.as_str().len()
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn everything() {
+        let mut cursor = Cursor::new("abcccc");
+        assert_eq!(cursor.is_eof(), false);
+        assert_eq!(cursor.peek(), Some('a'));
+        assert_eq!(cursor.peek_nth(1), Some('b'));
+        assert_eq!(cursor.next_char(), Some('a'));
+        assert_eq!(cursor.peek(), Some('b'));
+        assert_eq!(cursor.next_char(), Some('b'));
+        cursor.eat_while(|c| c.unwrap() == 'c');
+        assert_eq!(cursor.peek(), None);
+        assert_eq!(cursor.is_eof(), true);
     }
 }

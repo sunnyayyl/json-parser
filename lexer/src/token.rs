@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LiteralType {
     String(String),
     Integer(isize),
@@ -15,7 +15,7 @@ impl Display for LiteralType {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LexerToken {
     Eof,
     LeftBrace,

@@ -95,3 +95,25 @@ impl<'a> IntoIterator for Lexer<'a> {
         IntoIter(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn next_token(){
+        let mut lexer = Lexer::new("{\
+        \"testing\": \"a \\\"string\\\"\",
+        \"number\\\\\": 1234
+        }");
+        assert_eq!(lexer.next_token(), LexerToken::LeftBrace);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("testing"))));
+        assert_eq!(lexer.next_token(), LexerToken::Colon);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("a \"string\""))));
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("number\\"))));
+        assert_eq!(lexer.next_token(), LexerToken::Colon);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Integer(1234)));
+        assert_eq!(lexer.next_token(), LexerToken::RightBrace);
+        assert_eq!(lexer.next_token(), LexerToken::Eof);
+    }
+}

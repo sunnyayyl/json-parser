@@ -1,4 +1,4 @@
-pub mod cursor;
+mod cursor;
 mod lexer;
 pub use lexer::*;
 mod token;
