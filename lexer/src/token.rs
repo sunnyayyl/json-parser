@@ -1,6 +1,6 @@
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq,Clone)]
 pub enum LiteralType {
     String(String),
     Integer(isize),
@@ -15,11 +15,13 @@ impl Display for LiteralType {
         }
     }
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq,Clone)]
 pub enum LexerToken {
     Eof,
     LeftBrace,
     RightBrace,
+    LeftBracket,
+    RightBracket,
     Colon,
     Comma,
     Literal(LiteralType),
@@ -32,6 +34,8 @@ impl Display for LexerToken {
             LexerToken::Eof => write!(f, "EOF"),
             LexerToken::LeftBrace => write!(f, "{{"),
             LexerToken::RightBrace => write!(f, "}}"),
+            LexerToken::LeftBracket => write!(f, "["),
+            LexerToken::RightBracket => write!(f, "]"),
             LexerToken::Colon => write!(f, ":"),
             LexerToken::Comma => write!(f, ","),
             LexerToken::Literal(v) => write!(f, "{}", v),

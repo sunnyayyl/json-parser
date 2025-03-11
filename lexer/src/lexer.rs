@@ -14,18 +14,25 @@ fn collect_while(cursor: &mut Cursor, f: impl Fn(char, usize) -> bool) -> String
     }
     collected
 }
-pub struct IntoIter<'a>(Lexer<'a>);
+#[derive(Debug, Clone)]
+pub struct IntoIter<'a> {
+    lexer: Lexer<'a>,
+    pub eof: bool,
+}
 impl Iterator for IntoIter<'_> {
     type Item = LexerToken;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.0.next_token() {
-            LexerToken::Eof => None,
+        match self.lexer.next_token() {
+            LexerToken::Eof => {
+                self.eof = true;
+                None
+            }
             token => Some(token),
         }
     }
 }
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Lexer<'a> {
     cursor: Cursor<'a>,
 }
@@ -44,6 +51,8 @@ impl<'a> Lexer<'a> {
         match next_char {
             Some('{') => LexerToken::LeftBrace,
             Some('}') => LexerToken::RightBrace,
+            Some('[') => LexerToken::LeftBracket,
+            Some(']') => LexerToken::RightBracket,
             Some(':') => LexerToken::Colon,
             Some(',') => LexerToken::Comma,
             Some('"') => {
@@ -92,7 +101,10 @@ impl<'a> IntoIterator for Lexer<'a> {
     type IntoIter = IntoIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        IntoIter(self)
+        IntoIter {
+            lexer: self,
+            eof: false,
+        }
     }
 }
 
@@ -100,19 +112,45 @@ impl<'a> IntoIterator for Lexer<'a> {
 mod tests {
     use super::*;
     #[test]
-    fn next_token(){
-        let mut lexer = Lexer::new("{\
+    fn next_token() {
+        let mut lexer = Lexer::new(
+            "{\
         \"testing\": \"a \\\"string\\\"\",
-        \"number\\\\\": 1234
-        }");
+        \"numbers\\\\\": [1,\"2\",3]
+        }",
+        );
         assert_eq!(lexer.next_token(), LexerToken::LeftBrace);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("testing"))));
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::String(String::from("testing")))
+        );
         assert_eq!(lexer.next_token(), LexerToken::Colon);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("a \"string\""))));
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::String(String::from("a \"string\"")))
+        );
         assert_eq!(lexer.next_token(), LexerToken::Comma);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::String(String::from("number\\"))));
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::String(String::from("numbers\\")))
+        );
         assert_eq!(lexer.next_token(), LexerToken::Colon);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Integer(1234)));
+        assert_eq!(lexer.next_token(), LexerToken::LeftBracket);
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Integer(1))
+        );
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::String(String::from("2")))
+        );
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Integer(3))
+        );
+        assert_eq!(lexer.next_token(), LexerToken::RightBracket);
         assert_eq!(lexer.next_token(), LexerToken::RightBrace);
         assert_eq!(lexer.next_token(), LexerToken::Eof);
     }
