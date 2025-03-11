@@ -35,5 +35,6 @@ impl Parser {
         assert_eq!(self.cursor.next_token(), Some(LexerToken::LeftBrace));
         let obj = Object;
         assert_eq!(self.cursor.next_token(), Some(LexerToken::RightBrace));
+        todo!()
     }
 }
