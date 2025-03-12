@@ -1,5 +1,6 @@
 use std::io::{stdin, stdout, Write};
 use lexer::Lexer;
+use parser::Parser;
 fn main() {
     loop {
         print!(">>> ");
@@ -10,6 +11,8 @@ fn main() {
         for token in lexer.clone(){
             println!("{}", token);
         }
-        println!("{:?}", lexer.into_iter().collect::<Vec<_>>());
+        println!("{:?}", lexer.clone().into_iter().collect::<Vec<_>>());
+        let mut parser=Parser::new(lexer);
+        println!("{:#?}",parser.parse());
     }
 }

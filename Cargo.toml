@@ -5,3 +5,5 @@ members = [
 ]
 [workspace.dependencies]
 lexer={ path = "lexer" }
+parser={ path = "parser" }
+

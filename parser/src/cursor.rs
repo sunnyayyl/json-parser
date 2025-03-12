@@ -1,5 +1,6 @@
 use lexer::{IntoIter, Lexer, LexerToken};
 
+#[derive(Debug, Clone)]
 pub(crate) struct TokenCursor<'a> {
     tokens: IntoIter<'a>,
 }
