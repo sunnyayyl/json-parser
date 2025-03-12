@@ -30,12 +30,12 @@ impl<'a> Cursor<'a> {
             self.next_char();
         }
     }
-    pub(crate) fn is_match(&mut self, target: &str) -> bool {
-        for c in  target.chars(){
-            if self.peek()==Some(c){
+    pub(crate) fn match_rest(&mut self, target: &str) -> bool {
+        for c in target.chars() {
+            if self.peek() == Some(c) {
                 self.next_char();
-            }else{
-                return false
+            } else {
+                return false;
             }
         }
         true

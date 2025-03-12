@@ -22,5 +22,4 @@ impl<'a> TokenCursor<'a> {
     pub(crate) fn next_token(&mut self) -> Option<LexerToken> {
         self.tokens.next()
     }
-
 }

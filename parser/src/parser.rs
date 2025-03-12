@@ -1,4 +1,3 @@
-use std::clone;
 
 use crate::cursor::TokenCursor;
 use lexer::{Lexer, LexerToken, LiteralType};
@@ -17,7 +16,7 @@ impl From<LiteralType> for Value {
             LiteralType::Float(f) => Value::Number(f),
             LiteralType::Integer(i) => Value::Number(i as f64),
             LiteralType::String(s) => Value::String(s),
-            LiteralType::Null=>Value::Null,
+            LiteralType::Null => Value::Null,
         }
     }
 }
@@ -27,8 +26,8 @@ pub struct Member {
     value: Value,
 }
 impl Member {
-    fn new(key: String, value: Value) -> Self {
-        return Self { key, value };
+    pub fn new(key: String, value: Value) -> Self {
+        Self { key, value }
     }
 }
 #[derive(Debug, PartialEq, Clone)]
@@ -62,7 +61,7 @@ impl<'a> Parser<'a> {
         } else {
             panic!("Expected literal as value")
         }
-        return Member::new(key, value.into());
+        Member::new(key, value.into())
     }
     fn parse_members(&mut self) -> Members {
         let mut members = vec![];
@@ -71,7 +70,7 @@ impl<'a> Parser<'a> {
             self.cursor.next_token();
             members.push(self.parse_member());
         }
-        return Members(members);
+        Members(members)
     }
     fn expect_next(&mut self, token: LexerToken) {
         let got = self
@@ -80,7 +79,7 @@ impl<'a> Parser<'a> {
             .expect(&format!("Expected Some({}) token, got None", token));
         assert_eq!(got, token, "Expected {}, got {}", token, got);
     }
-    pub fn parse_object(&mut self) -> Option<Object> {
+    fn parse_object(&mut self) -> Option<Object> {
         let obj;
         self.expect_next(LexerToken::LeftBrace);
         if matches!(self.cursor.peek(), Some(LexerToken::RightBrace)) {
@@ -89,10 +88,11 @@ impl<'a> Parser<'a> {
             obj = Some(Object(Some(self.parse_members())));
         }
         self.expect_next(LexerToken::RightBrace);
-        return obj;
+        obj
     }
 }
 mod tests {
+    #[allow(unused_imports)]
     use super::*;
     #[test]
     fn test_ast() {

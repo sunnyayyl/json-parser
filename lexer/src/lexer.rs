@@ -82,12 +82,11 @@ impl<'a> Lexer<'a> {
                     .parse()
                     .unwrap(),
             )),
-            Some(c) if c.is_alphabetic() =>{
-                if self.cursor.is_match("ull"){
+            Some(c) if c.is_alphabetic() => {
+                if self.cursor.match_rest("ull") {
                     LexerToken::Literal(LiteralType::Null)
-                
-                }else{
-                    panic!("Unexpected charater {}",c)
+                } else {
+                    panic!("Unexpected charater {}", c)
                 }
             }
             _ => LexerToken::Illegal,
@@ -154,10 +153,7 @@ mod tests {
             LexerToken::Literal(LiteralType::String(String::from("2")))
         );
         assert_eq!(lexer.next_token(), LexerToken::Comma);
-        assert_eq!(
-            lexer.next_token(),
-            LexerToken::Literal(LiteralType::Null)
-        );
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Null));
         assert_eq!(lexer.next_token(), LexerToken::RightBracket);
         assert_eq!(lexer.next_token(), LexerToken::RightBrace);
         assert_eq!(lexer.next_token(), LexerToken::Eof);
