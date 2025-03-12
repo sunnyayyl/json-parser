@@ -47,44 +47,47 @@ impl<'a> Parser<'a> {
     pub fn parse(&mut self) -> Object {
         self.parse_object().expect("Empty JSON?")
     }
-    fn parse_member(cursor: &mut TokenCursor) -> Member {
+    fn parse_member(&mut self) -> Member {
         let key;
         let value;
-        if let Some(LexerToken::Literal(LiteralType::String(literal))) = cursor.next_token() {
+        if let Some(LexerToken::Literal(LiteralType::String(literal))) = self.cursor.next_token() {
             key = literal;
         } else {
             panic!("Expected string literal as key")
         }
-        assert!(matches!(cursor.next_token(), Some(LexerToken::Colon)));
-        if let Some(LexerToken::Literal(literal)) = cursor.next_token() {
+        self.expect_next(LexerToken::Colon);
+        if let Some(LexerToken::Literal(literal)) = self.cursor.next_token() {
             value = literal;
         } else {
             panic!("Expected literal as value")
         }
         return Member::new(key, value.into());
     }
-    fn parse_members(cursor: &mut TokenCursor) -> Members {
+    fn parse_members(&mut self) -> Members {
         let mut members = vec![];
-        members.push(Parser::parse_member(cursor));
-        while matches!(cursor.peek(), Some(LexerToken::Comma)) {
-            cursor.next_token();
-            // pretend
-            members.push(Parser::parse_member(cursor));
+        members.push(self.parse_member());
+        while matches!(self.cursor.peek(), Some(LexerToken::Comma)) {
+            self.cursor.next_token();
+            members.push(self.parse_member());
         }
         return Members(members);
     }
-    fn expect(&mut self, token: LexerToken) {
-        assert_eq!(self.cursor.next_token(), Some(token));
+    fn expect_next(&mut self, token: LexerToken) {
+        let got = self
+            .cursor
+            .next_token()
+            .expect(&format!("Expected Some({}) token, got None", token));
+        assert_eq!(got, token, "Expected {}, got {}", token, got);
     }
     pub fn parse_object(&mut self) -> Option<Object> {
         let obj;
-        assert_eq!(self.cursor.next_token(), Some(LexerToken::LeftBrace));
+        self.expect_next(LexerToken::LeftBrace);
         if matches!(self.cursor.peek(), Some(LexerToken::RightBrace)) {
             obj = None;
         } else {
-            obj = Some(Object(Some(Parser::parse_members(&mut self.cursor))));
+            obj = Some(Object(Some(self.parse_members())));
         }
-        assert_eq!(self.cursor.next_token(), Some(LexerToken::RightBrace));
+        self.expect_next(LexerToken::RightBrace);
         return obj;
     }
 }
@@ -92,13 +95,13 @@ mod tests {
     use super::*;
     #[test]
     fn test_ast() {
-        let mut parser = Parser::new(Lexer::new("{\"key\":\"value\", \"key2\":2}"));
+        let mut parser = Parser::new(Lexer::new("{\"key\":\"value\", \"key2\\\"\":2}"));
         let obj = parser.parse_object();
         assert_eq!(
             obj,
             Some(Object(Some(Members(vec![
                 Member::new("key".to_string(), Value::String("value".to_string())),
-                Member::new("key2".to_string(), Value::Number(2.0))
+                Member::new("key2\"".to_string(), Value::Number(2.0))
             ]))))
         );
     }

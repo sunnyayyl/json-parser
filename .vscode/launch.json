@@ -7,6 +7,25 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug unit tests in executable 'parser'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=parser"
+                ],
+                "filter": {
+                    "name": "parser",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'lexer'",
             "cargo": {
                 "args": [
@@ -66,6 +85,10 @@
             "name": "Debug all",
             "configurations": ["Debug executable 'repl'","Debug unit tests in executable 'repl'","Debug unit tests in library 'lexer'"],
             "stopAll": true
+        },
+        {
+            "name": "Debug all unit test",
+            "configurations": ["Debug unit tests in executable 'parser'","Debug unit tests in executable 'repl'","Debug unit tests in library 'lexer'"]
         }
     ]
 }
