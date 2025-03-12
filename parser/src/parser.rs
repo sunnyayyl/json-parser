@@ -17,6 +17,7 @@ impl From<LiteralType> for Value {
             LiteralType::Float(f) => Value::Number(f),
             LiteralType::Integer(i) => Value::Number(i as f64),
             LiteralType::String(s) => Value::String(s),
+            LiteralType::Null=>Value::Null,
         }
     }
 }

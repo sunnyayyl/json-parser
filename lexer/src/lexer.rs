@@ -82,6 +82,14 @@ impl<'a> Lexer<'a> {
                     .parse()
                     .unwrap(),
             )),
+            Some(c) if c.is_alphabetic() =>{
+                if self.cursor.is_match("ull"){
+                    LexerToken::Literal(LiteralType::Null)
+                
+                }else{
+                    panic!("Unexpected charater {}",c)
+                }
+            }
             _ => LexerToken::Illegal,
         }
     }
@@ -116,7 +124,7 @@ mod tests {
         let mut lexer = Lexer::new(
             "{\
         \"testing\": \"a \\\"string\\\"\",
-        \"numbers\\\\\": [1,\"2\",3]
+        \"numbers\\\\\": [1,\"2\",null]
         }",
         );
         assert_eq!(lexer.next_token(), LexerToken::LeftBrace);
@@ -148,7 +156,7 @@ mod tests {
         assert_eq!(lexer.next_token(), LexerToken::Comma);
         assert_eq!(
             lexer.next_token(),
-            LexerToken::Literal(LiteralType::Integer(3))
+            LexerToken::Literal(LiteralType::Null)
         );
         assert_eq!(lexer.next_token(), LexerToken::RightBracket);
         assert_eq!(lexer.next_token(), LexerToken::RightBrace);

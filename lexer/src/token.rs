@@ -1,10 +1,11 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::{write, Display, Formatter};
 
 #[derive(Debug, PartialEq,Clone)]
 pub enum LiteralType {
     String(String),
     Integer(isize),
     Float(f64),
+    Null
 }
 impl Display for LiteralType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -12,6 +13,7 @@ impl Display for LiteralType {
             LiteralType::String(s) => write!(f, "String: {}", s),
             LiteralType::Integer(i) => write!(f, "Integer: {}", i),
             LiteralType::Float(v) => write!(f, "Float: {}", v),
+            LiteralType::Null=>write!(f,"Null")
         }
     }
 }

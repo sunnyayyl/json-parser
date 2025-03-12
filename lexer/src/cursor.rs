@@ -13,13 +13,6 @@ impl<'a> Cursor<'a> {
             len_remaining: slice.len(),
         }
     }
-    /*fn eat_until(&mut self, until: char) {
-        if let Some(index) = self.peek_position_of_first(until) {
-            self.chars = self.chars.as_str()[index..].chars();
-        } else {
-            self.chars = "".chars();
-        }
-    }*/
     pub(crate) fn is_eof(&self) -> bool {
         self.chars.as_str().is_empty()
     }
@@ -29,9 +22,6 @@ impl<'a> Cursor<'a> {
     fn peek_nth(&self, n: usize) -> Option<char> {
         self.chars.clone().nth(n)
     }
-    /*fn peek_position_of_first(&self, until: char) -> Option<usize> {
-        memchr::memchr(until as u8, self.chars.as_str().as_bytes())
-    }*/
     pub(crate) fn next_char(&mut self) -> Option<char> {
         self.chars.next()
     }
@@ -39,6 +29,16 @@ impl<'a> Cursor<'a> {
         while !self.is_eof() && f(self.peek()) {
             self.next_char();
         }
+    }
+    pub(crate) fn is_match(&mut self, target: &str) -> bool {
+        for c in  target.chars(){
+            if self.peek()==Some(c){
+                self.next_char();
+            }else{
+                return false
+            }
+        }
+        true
     }
     fn position_consumed(&self) -> usize {
         self.len_remaining - self.chars.as_str().len()
