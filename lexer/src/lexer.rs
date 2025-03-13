@@ -83,10 +83,14 @@ impl<'a> Lexer<'a> {
                     .unwrap(),
             )),
             Some(c) if c.is_alphabetic() => {
-                if self.cursor.match_rest("ull") {
-                    LexerToken::Literal(LiteralType::Null)
-                } else {
-                    panic!("Unexpected charater {}", c)
+                let mut collected = c.to_string();
+                self.cursor
+                    .collect_while(&mut collected, |c| c.unwrap().is_alphabetic());
+                match &*collected {
+                    "null" => LexerToken::Literal(LiteralType::Null),
+                    "true"=>LexerToken::Literal(LiteralType::Bool(true)),
+                    "false"=>LexerToken::Literal(LiteralType::Bool(false)),
+                    s => panic!("Unexpected charaters {}", s),
                 }
             }
             _ => LexerToken::Illegal,
@@ -123,7 +127,7 @@ mod tests {
         let mut lexer = Lexer::new(
             "{\
         \"testing\": \"a \\\"string\\\"\",
-        \"numbers\\\\\": [1,\"2\",null]
+        \"numbers\\\\\": [1,\"2\",null, true, false]
         }",
         );
         assert_eq!(lexer.next_token(), LexerToken::LeftBrace);
@@ -154,6 +158,10 @@ mod tests {
         );
         assert_eq!(lexer.next_token(), LexerToken::Comma);
         assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Null));
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Bool(true)));
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Bool(false)));
         assert_eq!(lexer.next_token(), LexerToken::RightBracket);
         assert_eq!(lexer.next_token(), LexerToken::RightBrace);
         assert_eq!(lexer.next_token(), LexerToken::Eof);

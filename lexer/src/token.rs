@@ -5,6 +5,7 @@ pub enum LiteralType {
     String(String),
     Integer(isize),
     Float(f64),
+    Bool(bool),
     Null,
 }
 impl Display for LiteralType {
@@ -14,6 +15,7 @@ impl Display for LiteralType {
             LiteralType::Integer(i) => write!(f, "Integer: {}", i),
             LiteralType::Float(v) => write!(f, "Float: {}", v),
             LiteralType::Null => write!(f, "Null"),
+            LiteralType::Bool(b)=>write!(f, "{}", b)
         }
     }
 }

@@ -17,6 +17,7 @@ impl From<LiteralType> for Value {
             LiteralType::Integer(i) => Value::Number(i as f64),
             LiteralType::String(s) => Value::String(s),
             LiteralType::Null => Value::Null,
+            LiteralType::Bool(b) => Value::Bool(b),
         }
     }
 }
@@ -141,7 +142,7 @@ mod tests {
     #[test]
     fn test_ast() {
         let mut parser = Parser::new(Lexer::new(
-            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": \"ok\"}]}",
+            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": true}]}",
         ));
         let obj = parser.parse_object();
         assert_eq!(
@@ -155,7 +156,7 @@ mod tests {
                         Element(Value::String("test".to_string())),
                         Element(Value::Object(Object(Some(Members(vec![Member::new(
                             "testing".to_string(),
-                            Value::String("ok".to_string())
+                            Value::Bool(true)
                         )])))))
                     ]))))
                 )

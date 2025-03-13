@@ -30,6 +30,11 @@ impl<'a> Cursor<'a> {
             self.next_char();
         }
     }
+    pub(crate) fn collect_while(&mut self, buff: &mut String, f: impl Fn(Option<char>) -> bool){
+        while !self.is_eof() && f(self.peek()) {
+            buff.push(self.next_char().unwrap());
+        }
+    }
     pub(crate) fn match_rest(&mut self, target: &str) -> bool {
         for c in target.chars() {
             if self.peek() == Some(c) {
