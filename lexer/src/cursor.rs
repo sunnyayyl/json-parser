@@ -36,13 +36,14 @@ mod tests {
     use super::*;
     #[test]
     fn everything() {
-        let mut cursor = Cursor::new("abcccc");
+        let mut cursor = Cursor::new("testing");
         assert_eq!(cursor.is_eof(), false);
-        assert_eq!(cursor.peek(), Some('a'));
-        assert_eq!(cursor.next_char(), Some('a'));
-        assert_eq!(cursor.peek(), Some('b'));
-        assert_eq!(cursor.next_char(), Some('b'));
-        cursor.eat_while(|c| c.unwrap() == 'c');
+        assert_eq!(cursor.peek(), Some('t'));
+        assert_eq!(cursor.next_char(), Some('t'));
+        assert_eq!(cursor.peek(), Some('e'));
+        assert_eq!(cursor.next_char(), Some('e'));
+        cursor.eat_while(|c| c.unwrap() != 'g');
+        assert_eq!(cursor.next_char(), Some('g'));
         assert_eq!(cursor.peek(), None);
         assert_eq!(cursor.is_eof(), true);
     }
