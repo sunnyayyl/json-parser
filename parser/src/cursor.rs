@@ -10,15 +10,10 @@ impl<'a> TokenCursor<'a> {
             tokens: lexer.into_iter(),
         }
     }
-    pub(crate) fn is_eof(&self) -> bool {
-        self.tokens.eof
-    }
     pub(crate) fn peek(&self) -> Option<LexerToken> {
         self.tokens.clone().next()
     }
-    pub(crate) fn peek_nth(&self, n: usize) -> Option<LexerToken> {
-        self.tokens.clone().nth(n)
-    }
+
     pub(crate) fn next_token(&mut self) -> Option<LexerToken> {
         self.tokens.next()
     }

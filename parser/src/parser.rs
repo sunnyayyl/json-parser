@@ -67,13 +67,13 @@ impl<'a> Parser<'a> {
         Element(self.parse_value())
     }
     fn parse_elements(&mut self) -> Elements {
-        let mut elemets = vec![];
-        elemets.push(self.parse_element());
+        let mut elements = vec![];
+        elements.push(self.parse_element());
         while self.cursor.peek() == Some(LexerToken::Comma) {
             self.cursor.next_token();
-            elemets.push(self.parse_element());
+            elements.push(self.parse_element());
         }
-        Elements(elemets)
+        Elements(elements)
     }
     fn parse_array(&mut self) -> Array {
         self.expect_next(LexerToken::LeftBracket);
@@ -81,7 +81,7 @@ impl<'a> Parser<'a> {
         self.expect_next(LexerToken::RightBracket);
         Array(Some(elements))
     }
-    // parse a number, but do not parse exponent
+    // parse a number but do not parse an exponent
     fn parse_number(&mut self) -> Option<isize> {
         let token = self.cursor.next_token();
         match token {
@@ -134,11 +134,6 @@ impl<'a> Parser<'a> {
             )
         }
         self.expect_next(LexerToken::Colon);
-        /*if let Some(LexerToken::Literal(literal)) = self.cursor.next_token() {
-            value = literal;
-        } else {
-            panic!("Expected literal as value")
-        }*/
         let value = self.parse_value();
         Member::new(key, value.into())
     }
@@ -192,7 +187,7 @@ mod tests {
                             "testing".to_string(),
                             Value::Bool(true)
                         )]))))),
-                        Element(Value::Number((10.0_f64).powf(-1.0_f64)))
+                        Element(Value::Number(10.0_f64.powf(-1.0_f64)))
                     ]))))
                 )
             ]))))

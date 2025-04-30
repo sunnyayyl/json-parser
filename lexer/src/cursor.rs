@@ -4,13 +4,11 @@ use std::str::Chars;
 #[derive(Clone, Debug)]
 pub(crate) struct Cursor<'a> {
     chars: Chars<'a>,
-    len_remaining: usize,
 }
 impl<'a> Cursor<'a> {
     pub(crate) fn new(slice: &str) -> Cursor {
         Cursor {
             chars: slice.chars(),
-            len_remaining: slice.len(),
         }
     }
     pub(crate) fn is_eof(&self) -> bool {
@@ -18,9 +16,6 @@ impl<'a> Cursor<'a> {
     }
     pub(crate) fn peek(&self) -> Option<char> {
         self.chars.clone().next()
-    }
-    fn peek_nth(&self, n: usize) -> Option<char> {
-        self.chars.clone().nth(n)
     }
     pub(crate) fn next_char(&mut self) -> Option<char> {
         self.chars.next()
@@ -30,23 +25,10 @@ impl<'a> Cursor<'a> {
             self.next_char();
         }
     }
-    pub(crate) fn collect_while(&mut self, buff: &mut String, f: impl Fn(Option<char>) -> bool){
+    pub(crate) fn collect_while(&mut self, buff: &mut String, f: impl Fn(Option<char>) -> bool) {
         while !self.is_eof() && f(self.peek()) {
             buff.push(self.next_char().unwrap());
         }
-    }
-    pub(crate) fn match_rest(&mut self, target: &str) -> bool {
-        for c in target.chars() {
-            if self.peek() == Some(c) {
-                self.next_char();
-            } else {
-                return false;
-            }
-        }
-        true
-    }
-    fn position_consumed(&self) -> usize {
-        self.len_remaining - self.chars.as_str().len()
     }
 }
 #[cfg(test)]
@@ -57,7 +39,6 @@ mod tests {
         let mut cursor = Cursor::new("abcccc");
         assert_eq!(cursor.is_eof(), false);
         assert_eq!(cursor.peek(), Some('a'));
-        assert_eq!(cursor.peek_nth(1), Some('b'));
         assert_eq!(cursor.next_char(), Some('a'));
         assert_eq!(cursor.peek(), Some('b'));
         assert_eq!(cursor.next_char(), Some('b'));

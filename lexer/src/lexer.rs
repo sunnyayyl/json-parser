@@ -55,9 +55,9 @@ impl<'a> Lexer<'a> {
             Some(']') => LexerToken::RightBracket,
             Some(':') => LexerToken::Colon,
             Some(',') => LexerToken::Comma,
-            Some('.')=>LexerToken::Dot,
-            Some('+')=>LexerToken::PositiveSign,
-            Some('-')=>LexerToken::NegativeSign,
+            Some('.') => LexerToken::Dot,
+            Some('+') => LexerToken::PositiveSign,
+            Some('-') => LexerToken::NegativeSign,
             Some('"') => {
                 let mut collected = String::new();
                 loop {
@@ -94,8 +94,8 @@ impl<'a> Lexer<'a> {
                     "null" => LexerToken::Literal(LiteralType::Null),
                     "true" => LexerToken::Literal(LiteralType::Bool(true)),
                     "false" => LexerToken::Literal(LiteralType::Bool(false)),
-                    "e"=>LexerToken::Exponent,
-                    s => panic!("Unexpected charaters {}", s),
+                    "e" => LexerToken::Exponent,
+                    s => panic!("Unexpected characters {}", s),
                 }
             }
             _ => LexerToken::Illegal,
@@ -178,22 +178,13 @@ mod tests {
             lexer.next_token(),
             LexerToken::Literal(LiteralType::Integer(10))
         );
-        assert_eq!(
-            lexer.next_token(),
-            LexerToken::Dot
-        );
+        assert_eq!(lexer.next_token(), LexerToken::Dot);
         assert_eq!(
             lexer.next_token(),
             LexerToken::Literal(LiteralType::Integer(2))
         );
-        assert_eq!(
-            lexer.next_token(),
-            LexerToken::Exponent
-        );
-        assert_eq!(
-            lexer.next_token(),
-            LexerToken::NegativeSign
-        );
+        assert_eq!(lexer.next_token(), LexerToken::Exponent);
+        assert_eq!(lexer.next_token(), LexerToken::NegativeSign);
         assert_eq!(
             lexer.next_token(),
             LexerToken::Literal(LiteralType::Integer(2))

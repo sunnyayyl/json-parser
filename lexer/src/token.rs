@@ -1,4 +1,4 @@
-use std::fmt::{write, Display, Formatter};
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum LiteralType {
@@ -15,7 +15,7 @@ impl Display for LiteralType {
             LiteralType::Integer(i) => write!(f, "Integer: {}", i),
             LiteralType::Float(v) => write!(f, "Float: {}", v),
             LiteralType::Null => write!(f, "Null"),
-            LiteralType::Bool(b)=>write!(f, "{}", b)
+            LiteralType::Bool(b) => write!(f, "{}", b),
         }
     }
 }
@@ -46,10 +46,10 @@ impl Display for LexerToken {
             LexerToken::RightBracket => write!(f, "]"),
             LexerToken::Colon => write!(f, ":"),
             LexerToken::Comma => write!(f, ","),
-            LexerToken::Exponent=>write!(f, "e"),
-            LexerToken::Dot=>write!(f, "."),
-            LexerToken::PositiveSign=>write!(f,"+"),
-            LexerToken::NegativeSign=>write!(f,"-"),
+            LexerToken::Exponent => write!(f, "e"),
+            LexerToken::Dot => write!(f, "."),
+            LexerToken::PositiveSign => write!(f, "+"),
+            LexerToken::NegativeSign => write!(f, "-"),
             LexerToken::Literal(v) => write!(f, "{}", v),
             LexerToken::Illegal => write!(f, "(illegal character)"),
         }
