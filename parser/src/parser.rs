@@ -1,6 +1,11 @@
 use crate::cursor::TokenCursor;
 use lexer::{Lexer, LexerToken, LiteralType};
 
+/*pub struct Number {
+    integer: i32,
+    fraction: i32,
+    exponent: i32,
+}*/
 #[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Object(Object),
@@ -54,8 +59,8 @@ impl<'a> Parser<'a> {
             cursor: TokenCursor::new(lexer),
         }
     }
-    pub fn parse(&mut self) -> Object {
-        self.parse_object().expect("Empty JSON?")
+    pub fn parse(&mut self) -> Value {
+        self.parse_value()
     }
     #[inline]
     fn parse_element(&mut self) -> Element {
@@ -76,13 +81,38 @@ impl<'a> Parser<'a> {
         self.expect_next(LexerToken::RightBracket);
         Array(Some(elements))
     }
+    // parse a number, but do not parse exponent
+    fn parse_number(&mut self) -> Option<isize> {
+        let token = self.cursor.next_token();
+        match token {
+            Some(LexerToken::Literal(literal)) => match literal {
+                LiteralType::Integer(num) => Some(num),
+                literal => panic!("Expected number, got {:?}", literal),
+            },
+            Some(LexerToken::NegativeSign) => Some(-self.parse_number().unwrap()),
+            Some(token) => panic!("Expected number, got {:?}", token),
+            None => None,
+        }
+    }
     fn parse_value(&mut self) -> Value {
         let next = self.cursor.peek();
         match next {
             Some(LexerToken::Literal(literal)) => {
                 self.cursor.next_token();
-                literal.into()
+                if self.cursor.peek() == Some(LexerToken::Exponent) {
+                    if let LiteralType::Integer(number) = literal {
+                        self.cursor.next_token();
+                        let exponent = self.parse_number().unwrap();
+                        let exp: i32 = exponent.try_into().unwrap();
+                        Value::Number((number as f64).powi(exp))
+                    } else {
+                        panic!("Exponent can only be used on number");
+                    }
+                } else {
+                    literal.into()
+                }
             }
+            Some(LexerToken::NegativeSign) => Value::Number(self.parse_number().unwrap() as f64),
             Some(LexerToken::LeftBrace) => Value::Object(
                 self.parse_object()
                     .expect("Expected to find an object, got None"),
@@ -94,10 +124,14 @@ impl<'a> Parser<'a> {
     }
     fn parse_member(&mut self) -> Member {
         let key;
-        if let Some(LexerToken::Literal(LiteralType::String(literal))) = self.cursor.next_token() {
+        if let Some(LexerToken::Literal(LiteralType::String(literal))) = self.cursor.peek() {
+            self.cursor.next_token();
             key = literal;
         } else {
-            panic!("Expected string literal as key")
+            panic!(
+                "Expected string literal as key, got {:?}",
+                self.cursor.next_token()
+            )
         }
         self.expect_next(LexerToken::Colon);
         /*if let Some(LexerToken::Literal(literal)) = self.cursor.next_token() {
@@ -142,12 +176,12 @@ mod tests {
     #[test]
     fn test_ast() {
         let mut parser = Parser::new(Lexer::new(
-            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": true}]}",
+            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": true}, 10e-1]}",
         ));
-        let obj = parser.parse_object();
+        let obj = parser.parse();
         assert_eq!(
             obj,
-            Some(Object(Some(Members(vec![
+            Value::Object(Object(Some(Members(vec![
                 Member::new("key".to_string(), Value::String("value".to_string())),
                 Member::new(
                     "key2\"".to_string(),
@@ -157,7 +191,8 @@ mod tests {
                         Element(Value::Object(Object(Some(Members(vec![Member::new(
                             "testing".to_string(),
                             Value::Bool(true)
-                        )])))))
+                        )]))))),
+                        Element(Value::Number((10.0_f64).powf(-1.0_f64)))
                     ]))))
                 )
             ]))))

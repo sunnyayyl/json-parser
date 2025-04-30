@@ -55,6 +55,9 @@ impl<'a> Lexer<'a> {
             Some(']') => LexerToken::RightBracket,
             Some(':') => LexerToken::Colon,
             Some(',') => LexerToken::Comma,
+            Some('.')=>LexerToken::Dot,
+            Some('+')=>LexerToken::PositiveSign,
+            Some('-')=>LexerToken::NegativeSign,
             Some('"') => {
                 let mut collected = String::new();
                 loop {
@@ -82,14 +85,16 @@ impl<'a> Lexer<'a> {
                     .parse()
                     .unwrap(),
             )),
+
             Some(c) if c.is_alphabetic() => {
                 let mut collected = c.to_string();
                 self.cursor
                     .collect_while(&mut collected, |c| c.unwrap().is_alphabetic());
                 match &*collected {
                     "null" => LexerToken::Literal(LiteralType::Null),
-                    "true"=>LexerToken::Literal(LiteralType::Bool(true)),
-                    "false"=>LexerToken::Literal(LiteralType::Bool(false)),
+                    "true" => LexerToken::Literal(LiteralType::Bool(true)),
+                    "false" => LexerToken::Literal(LiteralType::Bool(false)),
+                    "e"=>LexerToken::Exponent,
                     s => panic!("Unexpected charaters {}", s),
                 }
             }
@@ -127,7 +132,7 @@ mod tests {
         let mut lexer = Lexer::new(
             "{\
         \"testing\": \"a \\\"string\\\"\",
-        \"numbers\\\\\": [1,\"2\",null, true, false]
+        \"numbers\\\\\": [1,\"2\",null, true, false, 10.2e-2]
         }",
         );
         assert_eq!(lexer.next_token(), LexerToken::LeftBrace);
@@ -159,9 +164,40 @@ mod tests {
         assert_eq!(lexer.next_token(), LexerToken::Comma);
         assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Null));
         assert_eq!(lexer.next_token(), LexerToken::Comma);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Bool(true)));
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Bool(true))
+        );
         assert_eq!(lexer.next_token(), LexerToken::Comma);
-        assert_eq!(lexer.next_token(), LexerToken::Literal(LiteralType::Bool(false)));
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Bool(false))
+        );
+        assert_eq!(lexer.next_token(), LexerToken::Comma);
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Integer(10))
+        );
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Dot
+        );
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Integer(2))
+        );
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Exponent
+        );
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::NegativeSign
+        );
+        assert_eq!(
+            lexer.next_token(),
+            LexerToken::Literal(LiteralType::Integer(2))
+        );
         assert_eq!(lexer.next_token(), LexerToken::RightBracket);
         assert_eq!(lexer.next_token(), LexerToken::RightBrace);
         assert_eq!(lexer.next_token(), LexerToken::Eof);
