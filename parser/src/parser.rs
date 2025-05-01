@@ -1,6 +1,8 @@
 use crate::cursor::TokenCursor;
+use crate::serialize;
+use crate::serialize::Deserialize;
 use lexer::{Lexer, LexerToken, LiteralType};
-
+use std::collections::HashMap;
 /*pub struct Number {
     integer: i32,
     fraction: i32,
@@ -15,6 +17,18 @@ pub enum Value {
     Array(Array),
     Null,
 }
+impl Into<serialize::RustValue> for Value {
+    fn into(self) -> serialize::RustValue {
+        match self {
+            Value::Object(obj) => obj.deserialize(),
+            Value::String(string) => serialize::RustValue::String(string),
+            Value::Number(num) => serialize::RustValue::Number(num),
+            Value::Array(array) => array.deserialize(),
+            Value::Bool(bool) => serialize::RustValue::Bool(bool),
+            Value::Null => serialize::RustValue::None,
+        }
+    }
+}
 impl From<LiteralType> for Value {
     fn from(value: LiteralType) -> Self {
         match value {
@@ -24,6 +38,35 @@ impl From<LiteralType> for Value {
             LiteralType::Null => Value::Null,
             LiteralType::Bool(b) => Value::Bool(b),
         }
+    }
+}
+impl Deserialize for Value {
+    fn deserialize(self) -> serialize::RustValue {
+        self.into()
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Object(pub(crate) Option<Members>);
+impl Deserialize for Object {
+    fn deserialize(self) -> serialize::RustValue {
+        if let Some(members) = self.0 {
+            members.deserialize()
+        } else {
+            serialize::RustValue::None
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Members(Vec<Member>);
+impl Deserialize for Members {
+    fn deserialize(self) -> serialize::RustValue {
+        let mut hashmap = HashMap::with_capacity(self.0.len());
+        for member in self.0 {
+            hashmap.insert(member.key, member.value.deserialize());
+        }
+        serialize::RustValue::HashMap(hashmap)
     }
 }
 #[derive(Debug, PartialEq, Clone)]
@@ -36,20 +79,37 @@ impl Member {
         Self { key, value }
     }
 }
-#[derive(Debug, PartialEq, Clone)]
-pub struct Members(Vec<Member>);
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Object(Option<Members>);
-#[derive(Debug, PartialEq, Clone)]
-
 pub struct Elements(Vec<Element>);
-#[derive(Debug, PartialEq, Clone)]
+impl Deserialize for Elements {
+    fn deserialize(self) -> serialize::RustValue {
+        let mut vec = Vec::with_capacity(self.0.len());
+        for i in self.0 {
+            vec.push(i.deserialize());
+        }
+        serialize::RustValue::Vec(vec)
+    }
+}
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Element(Value);
+impl Deserialize for Element {
+    fn deserialize(self) -> serialize::RustValue {
+        self.0.deserialize()
+    }
+}
 #[derive(Debug, PartialEq, Clone)]
-
 pub struct Array(Option<Elements>);
+impl Deserialize for Array {
+    fn deserialize(self) -> serialize::RustValue {
+        if let Some(elements) = self.0 {
+            elements.deserialize()
+        } else {
+            serialize::RustValue::None
+        }
+    }
+}
 pub struct Parser<'a> {
     cursor: TokenCursor<'a>,
 }
@@ -59,7 +119,7 @@ impl<'a> Parser<'a> {
             cursor: TokenCursor::new(lexer),
         }
     }
-    pub fn parse(&mut self) -> Value {
+    pub fn parse(mut self) -> Value {
         self.parse_value()
     }
     #[inline]
@@ -168,10 +228,12 @@ impl<'a> Parser<'a> {
 mod tests {
     #[allow(unused_imports)]
     use super::*;
+    use crate::serialize::RustValue;
     #[test]
     fn test_ast() {
         let mut parser = Parser::new(Lexer::new(
-            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": true}, 10e-1]}",
+            "{\"key\":\"value\", \"key2\\\"\":[1,\"test\", {\"testing\": true}, 10e-1]}", 
+            // {"key":"value", "key2\"":[1,"test", {"testing": true}, 10e-1]}
         ));
         let obj = parser.parse();
         assert_eq!(
@@ -191,6 +253,24 @@ mod tests {
                     ]))))
                 )
             ]))))
+        );
+        assert_eq!(
+            obj.deserialize(),
+            RustValue::HashMap(HashMap::from([
+                ("key".to_string(), RustValue::String("value".to_string())),
+                (
+                    "key2\"".to_string(),
+                    RustValue::Vec(vec![
+                        RustValue::Number(1.0),
+                        RustValue::String("test".to_string(),),
+                        RustValue::HashMap(HashMap::from([(
+                            "testing".to_string(),
+                            RustValue::Bool(true)
+                        )])),
+                        RustValue::Number(10.0_f64.powf(-1.0_f64)),
+                    ])
+                )
+            ]))
         );
     }
 }
